@@ -1,0 +1,30 @@
+{
+  "name": "isc-cross-chain-nft-marketplace",
+  "version": "1.0.0",
+  "description": "ISC NFT cross-chain marketplace demo with LayerZero bridge",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iota-community/ISC-Cross-Chain-NFT-Marketplace.git"
+  },
+  "keywords": [
+    "IOTA",
+    "ShimmerEVM",
+    "LayerZero"
+  ],
+  "author": "Salaheldin Soliman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iota-community/ISC-Cross-Chain-NFT-Marketplace/issues"
+  },
+  "homepage": "https://github.com/iota-community/ISC-Cross-Chain-NFT-Marketplace#readme",
+  "devDependencies": {
+    "@layerzerolabs/solidity-examples": "^1.1.0",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "hardhat": "^2.22.5"
+  }
+}
