@@ -1,6 +1,5 @@
 # ISC-Cross-Chain-NFT-Marketplace
-
-
+![alt text](imgs/Architecture.drawio.svg)
 ## Pre-requisites
 
 ### 1-An NFT on Shimmer Testnet (L1)
