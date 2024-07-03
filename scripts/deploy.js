@@ -1,8 +1,21 @@
-async function main() {
-    const Counter = await ethers.getContractFactory("NFTMarketplace");
-    const counter = await Counter.deploy();
+const fs = require('fs');
+const path = require('path');
 
-    console.log("NFTMarketPlace deployed to:", await counter.getAddress());
+async function main() {
+    const NFTMarketplace = await ethers.getContractFactory("NFTMarketplace");
+    const marketplace = await NFTMarketplace.deploy();
+
+    const marketplaceAddress = await marketplace.getAddress();
+
+    console.log("NFTMarketPlace deployed to:", marketplaceAddress);
+
+    const addressDirectory = path.join(__dirname, 'addresses');
+    fs.mkdirSync(addressDirectory, { recursive: true }); // Ensure the directory exists, create it if it doesn't
+
+    const filePath = path.join(addressDirectory, 'NFTMarketplace.txt');
+    fs.writeFileSync(filePath, marketplaceAddress);
+
+    console.log(`Contract address written to ${filePath}`);
 }
 
 main()

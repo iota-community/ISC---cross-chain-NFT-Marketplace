@@ -16,12 +16,18 @@ contract NFTMarketplace is ERC721URIStorage {
     //owner is the contract address that created the smart contract
     address payable owner;
     //The fee charged by the marketplace to be allowed to list an NFT
-    uint256 listPrice = 0.01 ether;
+    uint256 listPrice = 0.0 ether;
+
+    enum Chain {
+        ShimmerL1,
+        ShimmerEVM,
+        BNB
+    }
 
     //The structure to store info about a listed token
     struct ListedToken {
         uint256 tokenId;
-        address tokenAddress;
+        Chain chain;
         address payable owner;
         address payable seller;
         uint256 price;
@@ -67,7 +73,7 @@ contract NFTMarketplace is ERC721URIStorage {
     }
 
     //The first time a token is created, it is listed here
-    function createToken(string memory tokenURI, uint256 price) public payable returns (uint) {
+    function createToken(string memory tokenURI, uint256 price, Chain chain) public payable returns (uint) {
         //Increment the tokenId counter, which is keeping track of the number of minted NFTs
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
@@ -79,12 +85,12 @@ contract NFTMarketplace is ERC721URIStorage {
         _setTokenURI(newTokenId, tokenURI);
 
         //Helper function to update Global variables and emit an event
-        createListedToken(address(this) ,newTokenId, price);
+        createListedToken(newTokenId, price, chain);
 
         return newTokenId;
     }
 
-    function createListedToken(address _tokenAddress ,uint256 tokenId, uint256 price) private {
+    function createListedToken(uint256 tokenId, uint256 price, Chain chain) private {
         //Make sure the sender sent enough ETH to pay for listing
         require(msg.value == listPrice, "Hopefully sending the correct price");
         //Just sanity check
@@ -93,7 +99,7 @@ contract NFTMarketplace is ERC721URIStorage {
         //Update the mapping of tokenId's to Token details, useful for retrieval functions
         idToListedToken[tokenId] = ListedToken(
             tokenId,
-            _tokenAddress,
+            chain,
             payable(address(this)),
             payable(msg.sender),
             price,
