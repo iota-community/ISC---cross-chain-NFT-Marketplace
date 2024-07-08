@@ -13,7 +13,7 @@ error NotOwner();
 error NotApprovedForMarketplace();
 error PriceMustBeAboveZero();
 
-contract NftMarketplace is ReentrancyGuard {
+contract NFTMarketPlace is ReentrancyGuard {
     struct Listing {
         uint256 price;
         address seller;
