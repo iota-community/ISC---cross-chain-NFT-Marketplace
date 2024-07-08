@@ -1,4 +1,9 @@
 # ISC-Cross-Chain-NFT-Marketplace
+This is an NFT marketplace, where NFTs are listed on Shimmer Testnet, Shimmer EVM Testnet and BNB Testnet. 
+
+This tutorial is incremental. We will first build a Solidity NFT market place on Shimmer EVM, then support L1 (Shimmer Testnet), and then support BNB Testnet
+
+
 ![alt text](imgs/Architecture.drawio.svg)
 ## Pre-requisites
 
