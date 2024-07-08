@@ -9,4 +9,4 @@ This is an NFT marketplace, where NFTs are listed on Shimmer Testnet, Shimmer EV
 ##### Part III: Deploy the NFT marketplace on BNB Testnet, making the NFT marketplace contract handle cross-chain transactions.
 
 Current Architecture:
-![alt text](imgs/Architecture.drawio.svg)
+![alt text](imgs/Arch.png)
