@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MyERC721 is ERC721Enumerable, Ownable {
     string public _baseTokenURI;
+    uint32 public _tokenId = 0;
 
     event EventSetBaseURI(string baseURI);
 
@@ -27,8 +28,9 @@ contract MyERC721 is ERC721Enumerable, Ownable {
         emit EventSetBaseURI(baseURI);
     }
 
-    function mint(address to, uint tokenId) external onlyOwner {
-        _safeMint(to, tokenId, "");
+    function mint() external onlyOwner {
+        _safeMint(msg.sender, _tokenId, "");
+        _tokenId++;
     }
 
     function transfer(address to, uint tokenId) external {

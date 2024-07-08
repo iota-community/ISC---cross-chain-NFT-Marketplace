@@ -1,29 +1,21 @@
 const fs = require('fs');
 const path = require('path');
 
-async function createNFT(marketplaceAddress, tokenURI, price, chain) {
-    const [deployer] = await ethers.getSigners();
-    const NFTMarketplace = await ethers.getContractFactory("NFTMarketplace");
-    const marketplace = NFTMarketplace.attach(marketplaceAddress);
+async function createNFT(myERC721Address) {
 
-    const tx = await marketplace.createToken(tokenURI, 1, chain);
-    const receipt = await tx.wait(); // Wait for the transaction to be mined
-    console.log(receipt.events);
-    console.log(receipt.logs[receipt.logs.length - 1])
+    const MyERC721 = await ethers.getContractFactory("MyERC721");
+    const myERC721 = MyERC721.attach(myERC721Address);
 
-    // Log the events
-    for (const event of receipt.logs) {
-        console.log(`Event ${event} with args ${event.args}`);
-    }
-    console.log(`NFT created with tokenURI: ${tokenURI}`);
+    const tx = await myERC721.mint();
+    await tx.wait(); // Wait for the transaction to be mined
 }
 
 async function main() {
     // Read the contract address from the file
-    const addressPath = path.join(__dirname, 'addresses', 'NFTMarketplace.txt');
-    const marketplaceAddress = fs.readFileSync(addressPath, 'utf8').trim();
+    const addressPath = path.join(__dirname, 'addresses', 'MyERC721.txt');
+    const myERC721Address = fs.readFileSync(addressPath, 'utf8').trim();
 
-    await createNFT(marketplaceAddress, "ipfs://exampleTokenURI", "0.1", 1); // 0 represents the first value in the Chain enum, adjust accordingly
+    await createNFT(myERC721Address);
 }
 
 main()
