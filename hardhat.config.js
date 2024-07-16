@@ -2,7 +2,7 @@ require("@nomicfoundation/hardhat-toolbox");
 
 const BNB_TESTNET_RPC_URL = process.env.rpcUrlOnDestChain
   ? process.env.rpcUrlOnDestChain
-  : "https://bsc-testnet.public.blastapi.io";
+  : "https://bsc-testnet-dataseed.bnbchain.org";
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {

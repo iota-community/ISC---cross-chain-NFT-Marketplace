@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/iota-community/ISC-Cross-Chain-NFT-Marketplace#readme",
   "devDependencies": {
+    "@layerzerolabs/scan-client": "^0.0.8",
     "@layerzerolabs/solidity-examples": "^1.1.0",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^4.9.3",
