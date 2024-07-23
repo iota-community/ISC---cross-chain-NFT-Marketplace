@@ -29,9 +29,6 @@ async function main() {
     const remoteAddress = fs.readFileSync(myONFTAddressPath, 'utf8').trim();
 
     const chainId = 10230; 
-   
-
-   //const trusted_remote = pack(["address", "address"], [remoteAddress, myProxyONFT721Address])
 
     await setTrustedRemote(myProxyONFT721Address,remoteAddress, chainId);
 }
