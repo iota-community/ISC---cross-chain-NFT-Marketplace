@@ -9,7 +9,7 @@ async function setMinDstGas(proxyONFTAddress, chainId, minDstGas) {
     const myProxyONFT721 = MyProxyONFT721.attach(proxyONFTAddress);
 
     // Call setMinDstGas on the contract
-    let tx = await myProxyONFT721.setMinDstGas(chainId, 0, minDstGas);
+    let tx = await myProxyONFT721.setMinDstGas(chainId, 0, minDstGas, );
     await tx.wait(); // Wait for the transaction to be mined
 
 
@@ -32,7 +32,7 @@ async function main() {
 
 
 
-    const minDstGas = 150000;
+    const minDstGas = 100500;
    
 
     await setMinDstGas(myProxyONFT721Address, shimmerchainId, minDstGas);

@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const { pack } = require("@ethersproject/solidity");
+
 
 async function retryPayload(myERC721Address) {
 
@@ -18,10 +20,17 @@ async function main() {
 
     let endpoint = await ethers.getContract("dest_chain_addr");
 
-    let trustedRemote = hre.ethers.utils.solidityPack(
+
+
+    let source_app = "0x6911a9df536ba3d446dac0d98ddcf154ef870e0c"
+    let dest_app = "0xbe569d60a59723d220aff448ad51319c315ead35"
+
+    let trustedRemote = pack(
         ['address', 'address'],
-        [remoteContract.address, localContract.address],
+        [dest_app, source_app],
       );
+
+    console.log(trustedRemote);
 
 
 

@@ -5,26 +5,6 @@ const path = require('path');
 const fs = require('fs');
 
 
-const ERC721_TOKEN_APPROVE_ABI = [
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint25const path = require('path');",
-      },
-    ],
-    name: "approve",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-];
 
 // Via the ProxyONFT721 contract, send erc721 tokens on the source chain (e.g. ShimmerEVM testnet) to the destination chain (e.g. BNB testnet)
 async function sendONFT(
@@ -125,13 +105,13 @@ async function main() {
     const lzEndpointIdOnSrcChain = 10102;
     const lzEndpointIdOnDestChain = 10230;
 
-    const providedGasLimit = 200000;
+    const providedGasLimit = 100000 + 6000;
     const gasDropInWeiOnDestChain = 0;
 
-    const SENDER_ACCOUNT_PRIV_KEY = "4be05ce6dbcad7e19152b6e1e8fa708285c7c941ecd2c069cc904dd54091fde6";
+    const SENDER_ACCOUNT_PRIV_KEY = "YOUR_PRIVATE_KEY";
     const RECEIVER_ACCOUNT_ADDRESS = "0x7d0f6517DdF1D0F96a1050f1Dda7ee77323ceC0B";
 
-    const nftTokenId = "3";
+    const nftTokenId = "0";
     const nftTokenAddressPath = path.join(__dirname, 'addresses', 'MyERC721_BNB.txt');
     const nftTokenAddress = fs.readFileSync(nftTokenAddressPath, 'utf8').trim();
 

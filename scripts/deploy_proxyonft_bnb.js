@@ -24,7 +24,6 @@ async function main() {
 
     // Save the contract address to a file for easy access
     const addressDirectory = path.join(__dirname, 'addresses');
-    fs.mkdirSync(addressDirectory, { recursive: true });
 
     const filePath = path.join(addressDirectory, 'MyProxyONFT721.txt');
     fs.writeFileSync(filePath, deployedAddress);

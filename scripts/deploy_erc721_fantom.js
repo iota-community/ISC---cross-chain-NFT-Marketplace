@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 async function main() {
-    const MyERC721 = await ethers.getContractFactory("MyERC721");
-    const myERC721 = await MyERC721.deploy("SampleToken", "SESA", "URI");
+    const MyERC721 = await ethers.getContractFactory("MyONFT721");
+    const myERC721 = await MyERC721.deploy("SampleToken", "SESA", "FANTOMURI");
 
     const myERC721Address = await myERC721.getAddress();
 
@@ -12,7 +12,7 @@ async function main() {
     const addressDirectory = path.join(__dirname, 'addresses');
     fs.mkdirSync(addressDirectory, { recursive: true }); // Ensure the directory exists, create it if it doesn't
 
-    const filePath = path.join(addressDirectory, 'MyERC721_BNB.txt');
+    const filePath = path.join(addressDirectory, 'MyERC721_FTM.txt');
     fs.writeFileSync(filePath, myERC721Address);
 
     console.log(`Contract address written to ${filePath}`);

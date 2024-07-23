@@ -7,11 +7,14 @@ const { pack } = require("@ethersproject/solidity");
 // Function to set a trusted remote on the MyProxyONFT721 contract
 async function setTrustedRemote(proxy_addr ,remoteAddress, chainId) {
     // Attach to the deployed MyProxyONFT721 contract
-    const MyProxyONFT721 = await ethers.getContractFactory("MyProxyONFT721");
-    const myProxyONFT721 = MyProxyONFT721.attach(proxy_addr);
+    //const MyProxyONFT721 = await ethers.getContractFactory("MyProxyONFT721");
+    //const myProxyONFT721 = MyProxyONFT721.attach(proxy_addr);
+
+    const MyONFT721 = await ethers.getContractFactory("MyONFT721");
+    const myONFT721 = MyONFT721.attach(remoteAddress);
 
     // Call setTrustedRemote on the contract
-    const tx = await myProxyONFT721.setTrustedRemoteAddress(chainId, remoteAddress);
+    const tx = await myONFT721.setTrustedRemoteAddress(chainId, proxy_addr);
     await tx.wait(); // Wait for the transaction to be mined
 
     console.log(`Set trusted remote for chainId ${chainId} to address ${remoteAddress}`);
@@ -28,7 +31,7 @@ async function main() {
     // Read the MyONFT721 address from the file to use as the remoteAddress
     const remoteAddress = fs.readFileSync(myONFTAddressPath, 'utf8').trim();
 
-    const chainId = 10230; 
+    const chainId = 10102; 
    
 
    //const trusted_remote = pack(["address", "address"], [remoteAddress, myProxyONFT721Address])

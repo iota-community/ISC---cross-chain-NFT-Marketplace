@@ -16,8 +16,8 @@ async function main() {
     const minGasToTransfer = 100000; // Example value, adjust based on your needs
     const lzEndpointAddress = "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1"; 
 
-    const name = "MyONFT721";
-    const symbol = "ONFT721";
+    const name = "SampleToken";
+    const symbol = "SESA";
     
 
     const deployedAddress = await deployMyONFT721(name, symbol, minGasToTransfer, lzEndpointAddress);
