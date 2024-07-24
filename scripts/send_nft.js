@@ -108,10 +108,10 @@ async function main() {
     const providedGasLimit = 100000 + 6000;
     const gasDropInWeiOnDestChain = 0;
 
-    const SENDER_ACCOUNT_PRIV_KEY = "YOUR_PRIVATE_KEY";
+    const SENDER_ACCOUNT_PRIV_KEY = "4be05ce6dbcad7e19152b6e1e8fa708285c7c941ecd2c069cc904dd54091fde6";
     const RECEIVER_ACCOUNT_ADDRESS = "0x7d0f6517DdF1D0F96a1050f1Dda7ee77323ceC0B";
 
-    const nftTokenId = "0";
+    const nftTokenId = "12";
     const nftTokenAddressPath = path.join(__dirname, 'addresses', 'MyERC721_BNB.txt');
     const nftTokenAddress = fs.readFileSync(nftTokenAddressPath, 'utf8').trim();
 

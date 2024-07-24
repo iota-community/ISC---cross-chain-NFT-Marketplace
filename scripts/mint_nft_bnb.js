@@ -8,6 +8,10 @@ async function createNFT(myERC721Address) {
 
     const tx = await myERC721.mint();
     await tx.wait(); // Wait for the transaction to be mined
+
+    // get the token id
+    const tokenId = await myERC721._tokenId();
+    console.log(`Created NFT with token ID: ${tokenId.toString()}`);
 }
 
 async function main() {
