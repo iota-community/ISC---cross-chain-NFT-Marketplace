@@ -5,8 +5,7 @@ const path = require('path');
 const fs = require('fs');
 
 
-
-// Via the ProxyONFT721 contract, send erc721 tokens on the source chain (e.g. ShimmerEVM testnet) to the destination chain (e.g. BNB testnet)
+// Via the ProxyONFT721 contract, send erc721 tokens on the source chain (e.g. BNB testnet) to the destination chain (e.g. Shimmer EVM testnet)
 async function sendONFT(
   proxyONFTContractAddress,
   onftContractAddress,
@@ -71,8 +70,7 @@ async function sendONFT(
     lzEndpointIdOnDestChain,
     "0x7d0f6517DdF1D0F96a1050f1Dda7ee77323ceC0B",
     nftTokenId,
-    senderAddress, // refundAddressconst fs = require('fs');
-
+    senderAddress, // refundAddress
     "0x0000000000000000000000000000000000000000", // _zroPaymentAddress
     defaultAdapterParams,
     {
@@ -108,13 +106,12 @@ async function main() {
     const providedGasLimit = 100000 + 6000;
     const gasDropInWeiOnDestChain = 0;
 
-    const SENDER_ACCOUNT_PRIV_KEY = "4be05ce6dbcad7e19152b6e1e8fa708285c7c941ecd2c069cc904dd54091fde6";
-    const RECEIVER_ACCOUNT_ADDRESS = "0x7d0f6517DdF1D0F96a1050f1Dda7ee77323ceC0B";
+    const SENDER_ACCOUNT_PRIV_KEY = "YOUR_PRIVATE_KEY";
+    const RECEIVER_ACCOUNT_ADDRESS = "RECEIVER_ACCOUNT_ADDRESS";
 
-    const nftTokenId = "12";
+    const nftTokenId = "0";
     const nftTokenAddressPath = path.join(__dirname, 'addresses', 'MyERC721_BNB.txt');
     const nftTokenAddress = fs.readFileSync(nftTokenAddressPath, 'utf8').trim();
-
 
   await sendONFT(
     proxyONFTContractAddress,

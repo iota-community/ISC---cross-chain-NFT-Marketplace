@@ -12,7 +12,6 @@ async function setMinDstGas(proxyONFTAddress, chainId, minDstGas) {
     let tx = await MyONFT721.setMinDstGas(chainId, 0, minDstGas, );
     await tx.wait(); // Wait for the transaction to be mined
 
-
     // Call setMinDstGas on the contract
     let tx_2 = await MyONFT721.setMinDstGas(chainId, 1, minDstGas);
     await tx_2.wait(); // Wait for the transaction to be mined
@@ -27,13 +26,9 @@ async function main() {
     // Read the MyONFT721 address from the file
     const MyONFT721Address = fs.readFileSync(proxyAddressPath, 'utf8').trim();
    
-
     const bnbchainId = 10102; 
 
-
-
     const minDstGas = 100500;
-   
 
     await setMinDstGas(MyONFT721Address, bnbchainId, minDstGas);
 }

@@ -2,22 +2,20 @@ const fs = require('fs');
 const path = require('path');
 const { ethers } = require('hardhat');
 
-const { pack } = require("@ethersproject/solidity");
-
 // Function to set a trusted remote on the MyProxyONFT721 contract
-async function setTrustedRemote(proxy_addr ,remoteAddress, chainId) {
+async function setTrustedRemote(proxy_addr ,myONFT721Address, chainId) {
     // Attach to the deployed MyProxyONFT721 contract
     //const MyProxyONFT721 = await ethers.getContractFactory("MyProxyONFT721");
     //const myProxyONFT721 = MyProxyONFT721.attach(proxy_addr);
 
     const MyONFT721 = await ethers.getContractFactory("MyONFT721");
-    const myONFT721 = MyONFT721.attach(remoteAddress);
+    const myONFT721 = MyONFT721.attach(myONFT721Address);
 
     // Call setTrustedRemote on the contract
-    const tx = await myONFT721.setTrustedRemoteAddress(chainId, proxy_addr);
+    const tx = await myONFT721.setTrustedmyONFT721Address(chainId, proxy_addr);
     await tx.wait(); // Wait for the transaction to be mined
 
-    console.log(`Set trusted remote for chainId ${chainId} to address ${remoteAddress}`);
+    console.log(`Set trusted remote for chainId ${chainId} to address ${myONFT721Address}`);
 }
 
 // Example usage
@@ -28,15 +26,12 @@ async function main() {
 
     // Read the MyProxyONFT721 address from the file
     const myProxyONFT721Address = fs.readFileSync(proxyAddressPath, 'utf8').trim();
-    // Read the MyONFT721 address from the file to use as the remoteAddress
-    const remoteAddress = fs.readFileSync(myONFTAddressPath, 'utf8').trim();
+    // Read the MyONFT721 address from the file to use as the myONFT721Address
+    const myONFT721Address = fs.readFileSync(myONFTAddressPath, 'utf8').trim();
 
     const chainId = 10102; 
-   
 
-   //const trusted_remote = pack(["address", "address"], [remoteAddress, myProxyONFT721Address])
-
-    await setTrustedRemote(myProxyONFT721Address,remoteAddress, chainId);
+    await setTrustedRemote(myProxyONFT721Address,myONFT721Address, chainId);
 }
 
 main()

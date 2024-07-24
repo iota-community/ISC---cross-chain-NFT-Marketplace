@@ -24,7 +24,7 @@ async function main() {
     const myERC721Address = fs.readFileSync(myERC721AddressPath, 'utf8').trim();
 
     // Specify the tokenId you want to approve for transfer
-    const tokenId = "12"; // Example token ID, change this to the actual token ID you want to approve
+    const tokenId = "0"; // Example token ID, change this to the actual token ID you want to approve
     const price = 1;
 
     await createListing(marketplaceAddress, myERC721Address, tokenId, price);

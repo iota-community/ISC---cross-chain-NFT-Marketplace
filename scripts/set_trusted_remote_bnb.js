@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const { ethers } = require('hardhat');
 
-const { pack } = require("@ethersproject/solidity");
 
 // Function to set a trusted remote on the MyProxyONFT721 contract
 async function setTrustedRemote(proxy_addr ,remoteAddress, chainId) {

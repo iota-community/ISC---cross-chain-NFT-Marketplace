@@ -19,7 +19,6 @@ async function main() {
     const name = "SampleToken";
     const symbol = "SESA";
     
-
     const deployedAddress = await deployMyONFT721(name, symbol, minGasToTransfer, lzEndpointAddress);
 
     // Save the contract address to a file for easy access
