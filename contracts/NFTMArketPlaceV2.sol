@@ -3,7 +3,6 @@ pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@layerzerolabs/solidity-examples/contracts/token/onft721/ProxyONFT721.sol";
 
 error PriceNotMet(address nftAddress, uint256 tokenId, uint256 price);
 error ItemNotForSale(address nftAddress, uint256 tokenId);
@@ -14,10 +13,17 @@ error NotOwner();
 error NotApprovedForMarketplace();
 error PriceMustBeAboveZero();
 
-contract NFTMarketPlaceV2 is ReentrancyGuard, ProxyONFT721 {
+contract NFTMarketPlace is ReentrancyGuard {
+
+    /// @notice Struct for listing
+    /// @param price Price of the item
+    /// @param seller Address of the seller
+    /// @param proxyContract Address of the proxy contract, required for transferring the NFT cross-chain.
+    /// If the NFT is not to be transferred cross-chain, this should be set to 0x0
     struct Listing {
         uint256 price;
         address seller;
+        address proxyContract; 
     }
 
     event ItemListed(
@@ -40,16 +46,9 @@ contract NFTMarketPlaceV2 is ReentrancyGuard, ProxyONFT721 {
         uint256 price
     );
 
-    event MessageReceived(address indexed from, address indexed to, uint256 indexed tokenId);
-
     mapping(address => mapping(uint256 => Listing)) private s_listings;
     mapping(address => uint256) private s_proceeds;
-
-    constructor(
-        uint _minGasToTransfer,
-        address _lzEndpoint,
-        address _proxyToken
-    ) ProxyONFT721(_minGasToTransfer, _lzEndpoint, _proxyToken) {}
+    //mapping()
 
     modifier notListed(
         address nftAddress,
@@ -95,7 +94,8 @@ contract NFTMarketPlaceV2 is ReentrancyGuard, ProxyONFT721 {
     function listItem(
         address nftAddress,
         uint256 tokenId,
-        uint256 price
+        uint256 price,
+        address proxyContract
     )
         external
         notListed(nftAddress, tokenId)
@@ -108,7 +108,7 @@ contract NFTMarketPlaceV2 is ReentrancyGuard, ProxyONFT721 {
         if (nft.getApproved(tokenId) != address(this)) {
             revert NotApprovedForMarketplace();
         }
-        s_listings[nftAddress][tokenId] = Listing(price, msg.sender);
+        s_listings[nftAddress][tokenId] = Listing(price, msg.sender, proxyContract);
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
 
@@ -208,21 +208,5 @@ contract NFTMarketPlaceV2 is ReentrancyGuard, ProxyONFT721 {
 
     function getProceeds(address seller) external view returns (uint256) {
         return s_proceeds[seller];
-    }
-
-
-
-    /////////////////////
-    // LzApp Functions //
-    /////////////////////
-
-    function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64, /*_nonce*/
-        bytes memory _payload
-    ) internal virtual override {
-        // decode and load the toAddress
-        
     }
 }
