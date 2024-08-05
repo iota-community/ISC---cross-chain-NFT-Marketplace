@@ -106,7 +106,7 @@ async function main() {
     const providedGasLimit = 100000 + 6000;
     const gasDropInWeiOnDestChain = 0;
 
-    const SENDER_ACCOUNT_PRIV_KEY = "YOUR_PRIVATE_KEY";
+    const SENDER_ACCOUNT_PRIV_KEY = "4be05ce6dbcad7e19152b6e1e8fa708285c7c941ecd2c069cc904dd54091fde6";
     const RECEIVER_ACCOUNT_ADDRESS = "RECEIVER_ACCOUNT_ADDRESS";
 
     const nftTokenId = "0";

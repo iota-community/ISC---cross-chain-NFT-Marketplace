@@ -3,6 +3,7 @@ pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 error PriceNotMet(address nftAddress, uint256 tokenId, uint256 price);
 error ItemNotForSale(address nftAddress, uint256 tokenId);
@@ -14,6 +15,9 @@ error NotApprovedForMarketplace();
 error PriceMustBeAboveZero();
 
 contract NFTMarketPlace is ReentrancyGuard {
+
+
+    IERC20 public paymentToken = IERC20(address(0x5e3025BFfa9cEE0DfBc5E4B942c82352A48B59b9));
 
     /// @notice Struct for listing
     /// @param price Price of the item
@@ -154,6 +158,17 @@ contract NFTMarketPlace is ReentrancyGuard {
         // https://fravoll.github.io/solidity-patterns/pull_over_push.html
         delete (s_listings[nftAddress][tokenId]);
         IERC721(nftAddress).safeTransferFrom(listedItem.seller, msg.sender, tokenId);
+        emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
+    }
+
+    function buyItemERC20(address nftAddress, uint256 tokenId) external nonReentrant isListed(nftAddress, tokenId) {
+        Listing memory listedItem = s_listings[nftAddress][tokenId];
+
+        require(paymentToken.transferFrom(msg.sender, listedItem.seller, listedItem.price), "Payment failed");
+
+        delete s_listings[nftAddress][tokenId];
+        IERC721(nftAddress).safeTransferFrom(address(this), msg.sender, tokenId);
+
         emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
     }
 

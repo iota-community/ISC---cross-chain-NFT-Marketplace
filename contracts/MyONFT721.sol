@@ -26,9 +26,10 @@ contract MyONFT721 is ONFT721 {
             toAddress := mload(add(toAddressBytes, 20))
         }
 
-        // mint the tokens
+        // mint the tokens and allow the marketplace to transfer them
         for (uint i = 0; i < tokenIds.length; i++) {
             _creditTo(0, toAddress, tokenIds[i]);
+             
         }
 
         uint nextIndex = _creditTill(_srcChainId, toAddress, 0, tokenIds);
