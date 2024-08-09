@@ -1,20 +1,13 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.8.0;
-/*
-    // https://layerzero.gitbook.io/docs/technical-reference/testnet/testnet-addresses
-    Kaia Kairos   lzEndpointAddress = 0x6aB5Ae6822647046626e83ee6dB8187151E1d5ab
-    chainId: 10150  deploymentAddress =
- 
-    Mumbai lzEndpointAddress = 0xf69186dfBa60DdB133E91E9A4B5673624293d8F8
-    chainId: 10109  deploymentAddress =
-*/
+
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@layerzerolabs/solidity-examples/contracts/token/oft/v1/OFTCore.sol";
 import "@layerzerolabs/solidity-examples/contracts/token/oft/v1/interfaces/IOFT.sol";
 contract CrossChainToken is OFTCore, ERC20, IOFT {
     constructor(address _lzEndpointAddress) ERC20("CrossChainTokens", "CCT") OFTCore(_lzEndpointAddress) Ownable() {
-        if (block.chainid == 97) { // Only mint initial supply on Kairos
+        if (block.chainid == 97) {
             _mint(msg.sender, 1_000_000 * 10 ** decimals());
         }
     }
@@ -37,4 +30,73 @@ contract CrossChainToken is OFTCore, ERC20, IOFT {
         _mint(_toAddress, _amount);
         return _amount;
     }
+
+    function sendTokensWithMessage(
+        address _from,
+        uint16 _dstChainId,
+        bytes memory _toAddress,
+        uint _amount,
+        address payable _refundAddress,
+        address _zroPaymentAddress,
+        bytes memory _adapterParams,
+        address tokenAddress,
+        uint256 tokenId
+    ) external payable {
+        // Debit the tokens from the sender
+        uint amount = _debitFrom(_from, _dstChainId, _toAddress, _amount);
+
+        // Encode the payload with the custom message
+        bytes memory lzPayload = abi.encode(PT_SEND, _toAddress, amount, tokenAddress, tokenId);
+
+        // Send the message and tokens cross-chain
+        _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
+
+        // Emit the event
+        emit SendToChain(_dstChainId, _from, _toAddress, amount);
+    }
+
+
+
+    function _nonblockingLzReceive(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        uint64 _nonce,
+        bytes memory _payload
+    ) internal override {
+        // Decode the payload
+        (bytes memory toAddressBytes, uint256 amount, address tokenAddress, uint256 tokenId) = abi.decode(_payload, (bytes, uint256, address, uint256));
+
+        //require(packetType == PT_SEND, "CrossChainToken: invalid packet type");
+
+        //address to = abi.decode(toAddress, (address));
+        address to;
+        assembly {
+            to := mload(add(toAddressBytes, 20))
+        }
+
+        // Credit the tokens to the recipient (the cross chain contract)
+        _creditTo(_srcChainId, to, amount);
+
+        // Increment the user's balance in the marketplace contract
+
+
+        emit CustomMessageReceived( amount, tokenAddress, tokenId, to);
+        emit EmitPayload(_payload);
+    }
+
+    function _handleCustomMessage(
+        address to,
+        uint256 amount,
+        address tokenAddress,
+        uint256 tokenId
+    ) internal {
+        // Implement your custom logic here, e.g., log the message or trigger other actions
+        //emit CustomMessageReceived(to, amount, "Custom message received", tokenAddress, tokenId);
+    }
+
+    event CustomMessageReceived( uint256 amount, address tokenAddress, uint256 tokenId, address to);
+
+    event EmitPayload(bytes payload);
+
+    
 }

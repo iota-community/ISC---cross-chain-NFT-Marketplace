@@ -6,6 +6,8 @@ async function deployCrossChainToken(lzEndpointAddress) {
     const MyCrossChainToken = await ethers.getContractFactory("CrossChainToken");
     const myCrossChainToken = await MyCrossChainToken.deploy(lzEndpointAddress);
 
+    await myCrossChainToken.waitForDeployment();
+
     const address = await myCrossChainToken.getAddress();
     console.log("MyCrossChainToken deployed to:", address);
     return address;

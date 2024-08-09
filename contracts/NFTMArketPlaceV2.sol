@@ -4,6 +4,7 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@layerzerolabs/solidity-examples/contracts/token/onft721/ProxyONFT721.sol";
 
 error PriceNotMet(address nftAddress, uint256 tokenId, uint256 price);
 error ItemNotForSale(address nftAddress, uint256 tokenId);
@@ -17,7 +18,10 @@ error PriceMustBeAboveZero();
 contract NFTMarketPlace is ReentrancyGuard {
 
 
-    IERC20 public paymentToken = IERC20(address(0x5e3025BFfa9cEE0DfBc5E4B942c82352A48B59b9));
+    IERC20 public paymentToken = IERC20(address(0x4bE4D13D7818632c777C5d1c560567D59c7D18D0));
+    ProxyONFT721 public proxyContract;
+    
+
 
     /// @notice Struct for listing
     /// @param price Price of the item
@@ -52,7 +56,7 @@ contract NFTMarketPlace is ReentrancyGuard {
 
     mapping(address => mapping(uint256 => Listing)) private s_listings;
     mapping(address => uint256) private s_proceeds;
-    //mapping()
+    mapping(address => uint256) private ERC20Balance;
 
     modifier notListed(
         address nftAddress,
@@ -161,15 +165,26 @@ contract NFTMarketPlace is ReentrancyGuard {
         emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
     }
 
-    function buyItemERC20(address nftAddress, uint256 tokenId) external nonReentrant isListed(nftAddress, tokenId) {
+    function buyItemCrossChain(address nftAddress, uint256 tokenId, address payable buyer) external nonReentrant isListed(nftAddress, tokenId) {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
 
-        require(paymentToken.transferFrom(msg.sender, listedItem.seller, listedItem.price), "Payment failed");
+        require(ERC20Balance[buyer] >= listedItem.price, "Insufficient balance");
 
         delete s_listings[nftAddress][tokenId];
-        IERC721(nftAddress).safeTransferFrom(address(this), msg.sender, tokenId);
+        proxyContract = ProxyONFT721(listedItem.proxyContract);
+        IERC721 NFTContract = IERC721(nftAddress);
+
+        NFTContract.approve(listedItem.proxyContract, tokenId);
+
+        bytes memory adapterParams = abi.encodePacked(uint16(2), uint256(100000 + 6000), uint256(0), buyer);
+
+        proxyContract.sendFrom(address(this), 97, abi.encodePacked(buyer), tokenId, buyer, address(0), adapterParams);
 
         emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
+    }
+
+    function increaseERC20Balance(uint256 amount, address srcAddress) external {
+        ERC20Balance[srcAddress] += amount;
     }
 
     /*
