@@ -3,14 +3,13 @@ const path = require('path');
 const { ethers } = require('hardhat');
 
 
-// Function to set a trusted remote on the MyProxyONFT721 contract
-async function setTrustedRemote(proxy_addr ,remoteAddress, chainId) {
-    // Attach to the deployed MyProxyONFT721 contract
-    const MyProxyONFT721 = await ethers.getContractFactory("MyONFT721");
-    const myProxyONFT721 = MyProxyONFT721.attach(proxy_addr);
+async function setTrustedRemote(myONFTAddress ,remoteAddress, chainId) {
+    
+    const MyONFT = await ethers.getContractFactory("MyONFT721");
+    const myONFT = MyONFT.attach(myONFTAddress);
 
     // Call setTrustedRemote on the contract
-    const tx = await myProxyONFT721.setTrustedRemoteAddress(chainId, remoteAddress);
+    const tx = await myONFT.setTrustedRemoteAddress(chainId, remoteAddress);
     await tx.wait(); // Wait for the transaction to be mined
 
     console.log(`Set trusted remote for chainId ${chainId} to address ${remoteAddress}`);
@@ -22,7 +21,7 @@ async function main() {
     const myONFTAdressPath = path.join(__dirname, 'addresses', 'MyONFT721_Bnb.txt');
     const myONFTAddressPath = path.join(__dirname, 'addresses', 'MyONFT721_Shimmer.txt');
 
-    // Read the MyProxyONFT721 address from the file
+
     const myONFTAdress = fs.readFileSync(myONFTAdressPath, 'utf8').trim();
     // Read the MyONFT721 address from the file to use as the remoteAddress
     const remoteAddress = fs.readFileSync(myONFTAddressPath, 'utf8').trim();
