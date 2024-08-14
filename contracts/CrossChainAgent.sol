@@ -6,26 +6,38 @@ import "@layerzerolabs/solidity-examples/contracts/lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CrossChainAgent is NonblockingLzApp {
-
     address public marketplace;
     mapping(address => uint256) public balances;
 
-    event CustomMessageReceived(uint256 amount, address tokenAddress, uint256 tokenId, address to);
+    event CustomMessageReceived(
+        uint256 amount,
+        address tokenAddress,
+        uint256 tokenId,
+        address to
+    );
     event EmitPayload(bytes payload);
 
-    constructor(address _lzEndpoint, address _marketplace) NonblockingLzApp(_lzEndpoint) {
+    constructor(
+        address _lzEndpoint,
+        address _marketplace
+    ) NonblockingLzApp(_lzEndpoint) {
         marketplace = _marketplace;
     }
 
     /// @notice This function is called by LayerZero when a cross-chain message is received
     function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
+        uint16,
+        bytes memory,
         uint64 _nonce,
         bytes memory _payload
     ) internal override {
         // Decode the payload
-        (bytes memory toAddressBytes, uint256 amount, address tokenAddress, uint256 tokenId) = abi.decode(_payload, (bytes, uint256, address, uint256));
+        (
+            bytes memory toAddressBytes,
+            uint256 amount,
+            address tokenAddress,
+            uint256 tokenId
+        ) = abi.decode(_payload, (bytes, uint256, address, uint256));
 
         // Convert toAddressBytes to an address
         address to;
@@ -41,7 +53,7 @@ contract CrossChainAgent is NonblockingLzApp {
         emit EmitPayload(_payload);
 
         // Notify the marketplace that the balance is updated (this could be another cross-chain message)
-        //notifyMarketplace(tokenAddress, tokenId, to, balances[to]);
+        _notifyMarketplace(tokenAddress, tokenId, to, balances[to]);
     }
 
     /// @notice this function is to be called by the user to buy an NFT on BNB
@@ -55,7 +67,6 @@ contract CrossChainAgent is NonblockingLzApp {
         address payable refundAddress,
         bytes memory adapterParams
     ) public payable {
-
         IERC20(_tokenAddress).transferFrom(_user, address(this), _amount);
 
         // Update user balance on this chain
@@ -70,16 +81,23 @@ contract CrossChainAgent is NonblockingLzApp {
         );
 
         // Send the payload to the agent on Shimmer
-        _lzSend(_dstChainId, payload, refundAddress, address(0x0), adapterParams, msg.value);
+        _lzSend(
+            _dstChainId,
+            payload,
+            refundAddress,
+            address(0x0),
+            adapterParams,
+            msg.value
+        );
     }
 
     /// @notice Notify the marketplace of the user's balance (sends data to the marketplace)
-    function notifyMarketplace(
+    function _notifyMarketplace(
         address nftAddress,
         uint256 tokenId,
         address buyer,
         uint256 amount
-    ) external {
+    ) internal {
         // Here we will interact with the marketplace directly to call `buyItemCrossChain`
         (bool success, ) = marketplace.call(
             abi.encodeWithSignature(
@@ -99,19 +117,43 @@ contract CrossChainAgent is NonblockingLzApp {
         bool _useZro,
         bytes calldata _adapterParams
     ) public view returns (uint nativeFee, uint zroFee) {
-        bytes memory payload = abi.encode("", uint256(0), address(0), uint256(0)); // Empty payload for estimation
-        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
+        bytes memory payload = abi.encode(
+            "",
+            uint256(0),
+            address(0),
+            uint256(0)
+        ); // Empty payload for estimation
+        return
+            lzEndpoint.estimateFees(
+                _dstChainId,
+                address(this),
+                payload,
+                _useZro,
+                _adapterParams
+            );
     }
 
     /// @notice Set the oracle for cross-chain operations
     function setOracle(uint16 dstChainId, address oracle) external onlyOwner {
         uint TYPE_ORACLE = 6;
-        lzEndpoint.setConfig(lzEndpoint.getSendVersion(address(this)), dstChainId, TYPE_ORACLE, abi.encode(oracle));
+        lzEndpoint.setConfig(
+            lzEndpoint.getSendVersion(address(this)),
+            dstChainId,
+            TYPE_ORACLE,
+            abi.encode(oracle)
+        );
     }
 
     /// @notice Get the current oracle for a remote chain
-    function getOracle(uint16 remoteChainId) external view returns (address _oracle) {
-        bytes memory bytesOracle = lzEndpoint.getConfig(lzEndpoint.getSendVersion(address(this)), remoteChainId, address(this), 6);
+    function getOracle(
+        uint16 remoteChainId
+    ) external view returns (address _oracle) {
+        bytes memory bytesOracle = lzEndpoint.getConfig(
+            lzEndpoint.getSendVersion(address(this)),
+            remoteChainId,
+            address(this),
+            6
+        );
         assembly {
             _oracle := mload(add(bytesOracle, 32))
         }
