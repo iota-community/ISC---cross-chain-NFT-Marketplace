@@ -18,10 +18,12 @@ error PriceMustBeAboveZero();
 contract NFTMarketPlace is ReentrancyGuard {
 
 
-    IERC20 public paymentToken = IERC20(address(0x4bE4D13D7818632c777C5d1c560567D59c7D18D0));
-    ProxyONFT721 public proxyContract;
-    
+    IERC20 public paymentToken;
 
+    constructor(address _paymentToken) {
+        require(_paymentToken != address(0), "Invalid token address");
+        paymentToken = IERC20(_paymentToken);
+    }
 
     /// @notice Struct for listing
     /// @param price Price of the item
@@ -31,7 +33,7 @@ contract NFTMarketPlace is ReentrancyGuard {
     struct Listing {
         uint256 price;
         address seller;
-        address proxyContract; 
+        address proxyContract;
     }
 
     event ItemListed(
@@ -58,10 +60,7 @@ contract NFTMarketPlace is ReentrancyGuard {
     mapping(address => uint256) private s_proceeds;
     mapping(address => uint256) private ERC20Balance;
 
-    modifier notListed(
-        address nftAddress,
-        uint256 tokenId
-    ) {
+    modifier notListed(address nftAddress, uint256 tokenId) {
         Listing memory listing = s_listings[nftAddress][tokenId];
         if (listing.price > 0) {
             revert AlreadyListed(nftAddress, tokenId);
@@ -116,7 +115,11 @@ contract NFTMarketPlace is ReentrancyGuard {
         if (nft.getApproved(tokenId) != address(this)) {
             revert NotApprovedForMarketplace();
         }
-        s_listings[nftAddress][tokenId] = Listing(price, msg.sender, proxyContract);
+        s_listings[nftAddress][tokenId] = Listing(
+            price,
+            msg.sender,
+            proxyContract
+        );
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
 
@@ -125,7 +128,10 @@ contract NFTMarketPlace is ReentrancyGuard {
      * @param nftAddress Address of NFT contract
      * @param tokenId Token ID of NFT
      */
-    function cancelListing(address nftAddress, uint256 tokenId)
+    function cancelListing(
+        address nftAddress,
+        uint256 tokenId
+    )
         external
         isOwner(nftAddress, tokenId, msg.sender)
         isListed(nftAddress, tokenId)
@@ -142,7 +148,10 @@ contract NFTMarketPlace is ReentrancyGuard {
      * @param nftAddress Address of NFT contract
      * @param tokenId Token ID of NFT
      */
-    function buyItem(address nftAddress, uint256 tokenId)
+    function buyItem(
+        address nftAddress,
+        uint256 tokenId
+    )
         external
         payable
         isListed(nftAddress, tokenId)
@@ -161,26 +170,101 @@ contract NFTMarketPlace is ReentrancyGuard {
         // Could just send the money...
         // https://fravoll.github.io/solidity-patterns/pull_over_push.html
         delete (s_listings[nftAddress][tokenId]);
-        IERC721(nftAddress).safeTransferFrom(listedItem.seller, msg.sender, tokenId);
+        IERC721(nftAddress).safeTransferFrom(
+            listedItem.seller,
+            msg.sender,
+            tokenId
+        );
         emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
     }
 
-    function buyItemCrossChain(address nftAddress, uint256 tokenId, address payable buyer) external nonReentrant isListed(nftAddress, tokenId) {
+    function buyItemCrossChain(
+        address nftAddress,
+        uint256 tokenId,
+        address payable buyer,
+        uint256 amount
+    ) external nonReentrant isListed(nftAddress, tokenId) {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
 
-        require(ERC20Balance[buyer] >= listedItem.price, "Insufficient balance");
+        _validateAmount(amount, listedItem.price, nftAddress, tokenId);
 
         delete s_listings[nftAddress][tokenId];
-        proxyContract = ProxyONFT721(listedItem.proxyContract);
-        IERC721 NFTContract = IERC721(nftAddress);
 
-        NFTContract.approve(listedItem.proxyContract, tokenId);
+        _approveNFT(listedItem.proxyContract, nftAddress, tokenId);
 
-        bytes memory adapterParams = abi.encodePacked(uint16(2), uint256(100000 + 6000), uint256(0), buyer);
+        bytes memory adapterParams = _createAdapterParams(buyer);
 
-        proxyContract.sendFrom(address(this), 97, abi.encodePacked(buyer), tokenId, buyer, address(0), adapterParams);
+        uint256 fee = _estimateFee(listedItem.proxyContract, buyer, tokenId, adapterParams);
+
+        _sendNFT(listedItem, buyer, tokenId, adapterParams, fee);
+
+        s_proceeds[listedItem.seller] += amount;
 
         emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
+    }
+
+    function _validateAmount(
+        uint256 amount,
+        uint256 price,
+        address nftAddress,
+        uint256 tokenId
+    ) internal pure {
+        if (amount < price) {
+            revert PriceNotMet(nftAddress, tokenId, price);
+        }
+    }
+
+    function _approveNFT(
+        address proxyContract,
+        address nftAddress,
+        uint256 tokenId
+    ) internal {
+        IERC721 NFTContract = IERC721(nftAddress);
+        NFTContract.approve(proxyContract, tokenId);
+    }
+
+    function _createAdapterParams(address buyer) internal pure returns (bytes memory) {
+        return abi.encodePacked(
+            uint16(2),
+            uint256(100000 + 6000),
+            uint256(0),
+            buyer
+        );
+    }
+
+    function _estimateFee(
+        address proxyContract,
+        address buyer,
+        uint256 tokenId,
+        bytes memory adapterParams
+    ) internal view returns (uint256) {
+        (uint256 fee, ) = ProxyONFT721(proxyContract).estimateSendFee(
+            97,
+            abi.encodePacked(buyer),
+            tokenId,
+            false,
+            adapterParams
+        );
+        return fee;
+    }
+
+    function _sendNFT(
+        Listing memory listedItem,
+        address payable buyer,
+        uint256 tokenId,
+        bytes memory adapterParams,
+        uint256 fee
+    ) internal {
+        ProxyONFT721 proxyContract = ProxyONFT721(listedItem.proxyContract);
+        proxyContract.sendFrom{value: fee}(
+            listedItem.seller,
+            97,
+            abi.encodePacked(buyer),
+            tokenId,
+            buyer,
+            address(0),
+            adapterParams
+        );
     }
 
     function increaseERC20Balance(uint256 amount, address srcAddress) external {
@@ -228,11 +312,10 @@ contract NFTMarketPlace is ReentrancyGuard {
     // Getter Functions //
     /////////////////////
 
-    function getListing(address nftAddress, uint256 tokenId)
-        external
-        view
-        returns (Listing memory)
-    {
+    function getListing(
+        address nftAddress,
+        uint256 tokenId
+    ) external view returns (Listing memory) {
         return s_listings[nftAddress][tokenId];
     }
 
