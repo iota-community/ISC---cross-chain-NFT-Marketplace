@@ -2,33 +2,31 @@ const fs = require('fs');
 const path = require('path');
 const { ethers } = require('hardhat');
 
-async function deployMyProxyONFT721(minGasToTransfer, lzEndpointAddress, proxyTokenAddress) {
-    const MyProxyONFT721 = await ethers.getContractFactory("MyProxyONFT721");
-    const myProxyONFT721 = await MyProxyONFT721.deploy(minGasToTransfer, lzEndpointAddress, proxyTokenAddress);
-    //await myProxyONFT721.deployed();
+async function deployMarketplace(paymentTokenAddress) {
+    const Marketplace = await ethers.getContractFactory("NFTMarketPlaceV2");
+    const marketplace = await Marketplace.deploy(paymentTokenAddress);
 
-    const address = await myProxyONFT721.getAddress();
-    console.log("MyProxyONFT721 deployed to:", address);
+    const address = await marketplace.getAddress();
+    console.log("Marketplace deployed to:", address);
     return address;
 }
 
 async function main() {
-    const minGasToTransfer = 100000; // Example value, adjust based on your needs
-    const lzEndpointAddress = "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1"; // Shimmer endpoint address
+    // Read the payment token address from the file
+    const filePath = path.join(__dirname, 'addresses', 'CrossChainToken_Shimmer.txt');
+    const paymentTokenAddress = fs.readFileSync(filePath, 'utf8').trim();
 
-    // Read the proxyTokenAddress from the file
-    const proxyTokenAddressPath = path.join(__dirname, 'addresses', 'MyERC721_BNB.txt');
-    const proxyTokenAddress = fs.readFileSync(proxyTokenAddressPath, 'utf8').trim();
-
-    const deployedAddress = await deployMyProxyONFT721(minGasToTransfer, lzEndpointAddress, proxyTokenAddress);
+    // Deploy the Marketplace contract
+    const deployedMarketplaceAddress = await deployMarketplace(paymentTokenAddress);
 
     // Save the contract address to a file for easy access
     const addressDirectory = path.join(__dirname, 'addresses');
+    fs.mkdirSync(addressDirectory, { recursive: true });
 
-    const filePath = path.join(addressDirectory, 'MyProxyONFT721.txt');
-    fs.writeFileSync(filePath, deployedAddress);
+    const marketplaceFilePath = path.join(addressDirectory, 'MarketplaceV2_Shimmer.txt');
+    fs.writeFileSync(marketplaceFilePath, deployedMarketplaceAddress);
 
-    console.log(`Contract address written to ${filePath}`);
+    console.log(`Marketplace contract address written to ${marketplaceFilePath}`);
 }
 
 main()
