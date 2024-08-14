@@ -6,7 +6,7 @@ const { ethers } = require('hardhat');
 // Function to set a trusted remote on the MyProxyONFT721 contract
 async function setTrustedRemote(proxy_addr ,remoteAddress, chainId) {
     // Attach to the deployed MyProxyONFT721 contract
-    const MyProxyONFT721 = await ethers.getContractFactory("MyProxyONFT721");
+    const MyProxyONFT721 = await ethers.getContractFactory("MyONFT721");
     const myProxyONFT721 = MyProxyONFT721.attach(proxy_addr);
 
     // Call setTrustedRemote on the contract
@@ -19,17 +19,17 @@ async function setTrustedRemote(proxy_addr ,remoteAddress, chainId) {
 // Example usage
 async function main() {
 
-    const proxyAddressPath = path.join(__dirname, 'addresses', 'MyProxyONFT721.txt');
+    const myONFTAdressPath = path.join(__dirname, 'addresses', 'MyONFT721_Bnb.txt');
     const myONFTAddressPath = path.join(__dirname, 'addresses', 'MyONFT721_Shimmer.txt');
 
     // Read the MyProxyONFT721 address from the file
-    const myProxyONFT721Address = fs.readFileSync(proxyAddressPath, 'utf8').trim();
+    const myONFTAdress = fs.readFileSync(myONFTAdressPath, 'utf8').trim();
     // Read the MyONFT721 address from the file to use as the remoteAddress
     const remoteAddress = fs.readFileSync(myONFTAddressPath, 'utf8').trim();
 
     const chainId = 10230; 
 
-    await setTrustedRemote(myProxyONFT721Address,remoteAddress, chainId);
+    await setTrustedRemote(myONFTAdress,remoteAddress, chainId);
 }
 
 main()
