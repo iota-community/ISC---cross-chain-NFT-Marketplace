@@ -4,7 +4,7 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@layerzerolabs/solidity-examples/contracts/token/onft721/ProxyONFT721.sol";
+import "@layerzerolabs/solidity-examples/contracts/token/onft721/ONFT721.sol";
 
 error PriceNotMet(address nftAddress, uint256 tokenId, uint256 price);
 error ItemNotForSale(address nftAddress, uint256 tokenId);
@@ -15,7 +15,7 @@ error NotOwner();
 error NotApprovedForMarketplace();
 error PriceMustBeAboveZero();
 
-contract NFTMarketPlace is ReentrancyGuard {
+contract NFTMarketPlaceV2 is ReentrancyGuard {
 
 
     IERC20 public paymentToken;
@@ -28,12 +28,10 @@ contract NFTMarketPlace is ReentrancyGuard {
     /// @notice Struct for listing
     /// @param price Price of the item
     /// @param seller Address of the seller
-    /// @param proxyContract Address of the proxy contract, required for transferring the NFT cross-chain.
     /// If the NFT is not to be transferred cross-chain, this should be set to 0x0
     struct Listing {
         uint256 price;
         address seller;
-        address proxyContract;
     }
 
     event ItemListed(
@@ -101,8 +99,7 @@ contract NFTMarketPlace is ReentrancyGuard {
     function listItem(
         address nftAddress,
         uint256 tokenId,
-        uint256 price,
-        address proxyContract
+        uint256 price
     )
         external
         notListed(nftAddress, tokenId)
@@ -117,8 +114,7 @@ contract NFTMarketPlace is ReentrancyGuard {
         }
         s_listings[nftAddress][tokenId] = Listing(
             price,
-            msg.sender,
-            proxyContract
+            msg.sender
         );
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
@@ -190,13 +186,11 @@ contract NFTMarketPlace is ReentrancyGuard {
 
         delete s_listings[nftAddress][tokenId];
 
-        _approveNFT(listedItem.proxyContract, nftAddress, tokenId);
-
         bytes memory adapterParams = _createAdapterParams(buyer);
 
-        uint256 fee = _estimateFee(listedItem.proxyContract, buyer, tokenId, adapterParams);
+        uint256 fee = _estimateFee(nftAddress, buyer, tokenId, adapterParams);
 
-        _sendNFT(listedItem, buyer, tokenId, adapterParams, fee);
+        _sendNFT(nftAddress, buyer, listedItem.seller, tokenId, adapterParams, fee);
 
         s_proceeds[listedItem.seller] += amount;
 
@@ -214,15 +208,6 @@ contract NFTMarketPlace is ReentrancyGuard {
         }
     }
 
-    function _approveNFT(
-        address proxyContract,
-        address nftAddress,
-        uint256 tokenId
-    ) internal {
-        IERC721 NFTContract = IERC721(nftAddress);
-        NFTContract.approve(proxyContract, tokenId);
-    }
-
     function _createAdapterParams(address buyer) internal pure returns (bytes memory) {
         return abi.encodePacked(
             uint16(2),
@@ -233,12 +218,12 @@ contract NFTMarketPlace is ReentrancyGuard {
     }
 
     function _estimateFee(
-        address proxyContract,
+        address nftAddress,
         address buyer,
         uint256 tokenId,
         bytes memory adapterParams
     ) internal view returns (uint256) {
-        (uint256 fee, ) = ProxyONFT721(proxyContract).estimateSendFee(
+        (uint256 fee, ) = ONFT721(nftAddress).estimateSendFee(
             97,
             abi.encodePacked(buyer),
             tokenId,
@@ -249,15 +234,16 @@ contract NFTMarketPlace is ReentrancyGuard {
     }
 
     function _sendNFT(
-        Listing memory listedItem,
+        address nftContract,
         address payable buyer,
+        address seller,
         uint256 tokenId,
         bytes memory adapterParams,
         uint256 fee
     ) internal {
-        ProxyONFT721 proxyContract = ProxyONFT721(listedItem.proxyContract);
+        ONFT721 proxyContract = ONFT721(nftContract);
         proxyContract.sendFrom{value: fee}(
-            listedItem.seller,
+            seller,
             97,
             abi.encodePacked(buyer),
             tokenId,

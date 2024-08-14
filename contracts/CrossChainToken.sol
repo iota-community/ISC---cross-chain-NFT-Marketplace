@@ -1,15 +1,13 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import "@layerzerolabs/solidity-examples/contracts/token/oft/v1/OFT.sol";
 
-import { OFT } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oft/OFT.sol";
-
+// @dev example implementation inheriting a OFT
 contract CrossChainToken is OFT {
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _lzEndpoint,
-        address _delegate
-    ) OFT(_name, _symbol, _lzEndpoint, _delegate) Ownable(_delegate) {}
+    constructor(address _layerZeroEndpoint) OFT("MockOFT", "OFT", _layerZeroEndpoint) {}
+
+    // @dev WARNING public mint function, do not use this in production
+    function mintTokens(address _to, uint256 _amount) external {
+        _mint(_to, _amount);
+    }
 }
