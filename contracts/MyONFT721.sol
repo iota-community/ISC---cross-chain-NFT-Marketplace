@@ -12,6 +12,10 @@ contract MyONFT721 is ONFT721 {
     ) ONFT721(_name, _symbol, _minGasToTransfer, _lzEndpoint) {}
 
 
+    function mint(address _to, uint256 _tokenId) external {
+        _mint(_to, _tokenId);
+    }
+
     function _nonblockingLzReceive(
         uint16 _srcChainId,
         bytes memory _srcAddress,
@@ -28,8 +32,8 @@ contract MyONFT721 is ONFT721 {
 
         // mint the tokens and allow the marketplace to transfer them
         for (uint i = 0; i < tokenIds.length; i++) {
+            // credit the tokens to the toAddress
             _creditTo(0, toAddress, tokenIds[i]);
-             
         }
 
         uint nextIndex = _creditTill(_srcChainId, toAddress, 0, tokenIds);
